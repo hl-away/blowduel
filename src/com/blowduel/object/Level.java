@@ -9,20 +9,11 @@ import java.util.LinkedList;
  * Time: 0:09
  */
 public class Level {
-    private int number = 0;
     private int limitBubbles = 0;
     LinkedList<Line> lines;
 
     public Level() {
         lines = new LinkedList<Line>();
-    }
-
-    public int getNumber() {
-        return number;
-    }
-
-    public void setNumber(int number) {
-        this.number = number;
     }
 
     public int getLimitBubbles() {

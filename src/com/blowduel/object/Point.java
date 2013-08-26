@@ -7,8 +7,8 @@ package com.blowduel.object;
  * Time: 0:34
  */
 public class Point {
-    private double x;
-    private double y;
+    public double x;
+    public double y;
 
     public Point() {
 

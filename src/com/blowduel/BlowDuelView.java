@@ -10,17 +10,14 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import com.blowduel.object.*;
-import com.blowduel.object.Point;
 import com.blowduel.util.SoundMeter;
 
 import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
  * User: hl-away
  * Date: 08.08.13
- * Time: 23:57
  */
 public class BlowDuelView extends SurfaceView implements SurfaceHolder.Callback {
     private BlowDuelManager blowDuelLoopThread;
@@ -37,7 +34,7 @@ public class BlowDuelView extends SurfaceView implements SurfaceHolder.Callback 
     private int soundID;
     private float currentX = 0;
     private float currentY = 0;
-    private LinkedList<Level> levels;
+    private Game game;
 
     public BlowDuelView(Context context, AttributeSet attr) {
         super(context, attr);
@@ -55,15 +52,8 @@ public class BlowDuelView extends SurfaceView implements SurfaceHolder.Callback 
         initOnClickListener();
         initSound();
         bubbles = new LinkedList<Bubble>();
-        levels = new LinkedList<Level>();
 
-        Level level1 = new Level();
-        level1.setNumber(1);
-        level1.setLimitBubbles(100);
-        LinkedList<Line> lines1 = new LinkedList<Line>();
-        lines1.add(new Line(new Point(0,0), new Point(0,height), true));
-        level1.setLines(lines1);
-        levels.add(level1);
+        game = new Game(width, height);
     }
 
     private void initOnClickListener() {
@@ -144,10 +134,14 @@ public class BlowDuelView extends SurfaceView implements SurfaceHolder.Callback 
         super.onDraw(canvas);
         double amp = soundMeter.getAmplitude();
 
+        drawLevel(canvas);
+
         String s = String.valueOf(maxBubbles);
         String s2 = String.valueOf(bubbles.size());
-        canvas.drawText(s, width_d - s.length()*12, 50, maxTextPaint);
-        canvas.drawText(s2, width_d - s2.length()*12, 100, textPaint);
+        String s3 = String.valueOf(game.getCurrentLevel() + 1);
+        canvas.drawText(s, 30, 50, maxTextPaint);
+        canvas.drawText(s2, 30, 100, textPaint);
+        canvas.drawText(s3, 30, 150, textPaint);
 
         if(amp > 0) {
             for(int i = (int) amp / 2; i > 0; i--) {
@@ -169,6 +163,27 @@ public class BlowDuelView extends SurfaceView implements SurfaceHolder.Callback 
         }
     }
 
+    private int savedLevel = -1;
+    private Bitmap levelImage = null;
+
+    private void drawLevel(Canvas canvas) {
+        int currentLevel = game.getCurrentLevel();
+        if(savedLevel != currentLevel) {
+            savedLevel = currentLevel;
+            Level level = game.getLevels().get(currentLevel);
+            levelImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            Canvas levelCanvas = new Canvas(levelImage);
+            for(Line line: level.getLines()) {
+                Paint linePaint = new Paint();
+                linePaint.setColor(line.isBonusLine()? Color.GREEN: Color.RED);
+                linePaint.setStrokeWidth(5);
+                levelCanvas.drawLine((int) line.getP1().x, (int) line.getP1().y,
+                        (int) line.getP2().x, (int) line.getP2().y, linePaint);
+            }
+        }
+        canvas.drawBitmap( levelImage, 0, 0, new Paint() );
+    }
+
     private int currentProcess = 0;
 
     private void processBubbles(Canvas canvas) {
@@ -180,7 +195,7 @@ public class BlowDuelView extends SurfaceView implements SurfaceHolder.Callback 
             }
         }
 
-        if(currentProcess == 200) {
+        if(currentProcess == 100) {
             LinkedList<Bubble> tempBubbles = new LinkedList<Bubble>();
             for(Bubble bubble: bubbles) {
                 if(bubble.isShow()) {
